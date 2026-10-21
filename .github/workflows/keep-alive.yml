@@ -2,8 +2,8 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    - cron: "0 3 */3 * *" # 3日おき、UTC 3:00(JST正午ごろ)
-  workflow_dispatch: {} # 手動実行もできるように
+    - cron: "0 3 * * *"   # 毎日 UTC 3:00(日本時間 正午ごろ)
+  workflow_dispatch: {}    # 手動実行もできるように
 
 jobs:
   ping:
@@ -11,7 +11,8 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          curl -s -X GET \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/setup?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}"
+          for t in setup entries; do
+            curl -sS --fail -o /dev/null -w "$t: %{http_code}\n" \
+              "${{ secrets.SUPABASE_URL }}/rest/v1/$t?select=id&limit=1" \
+              -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}"
+          done
